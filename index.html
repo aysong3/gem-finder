@@ -377,7 +377,94 @@ var cards=[], sortCol=null, sortDir=1, pendingDelId=null, formImgB64=null, toast
 
 /* ─── Seed data (first visit) ─── */
 var SEED=[
-  {name:'Mega Gengar ex - 284/217', set:'ME: Ascended Heroes', raw:1279.54, psa10:0, psa9:0, gemRate:0, gradingCost:22, qty:1},
+  /* ME: Ascended Heroes */
+  {name:'Mega Gengar ex - 284/217',           set:'ME: Ascended Heroes', raw:1279.54, psa10:0, psa9:0, gemRate:0, gradingCost:22, qty:1},
+  {name:'Pikachu ex - 276/217',               set:'ME: Ascended Heroes', raw:1117.89, psa10:0, psa9:0, gemRate:0, gradingCost:22, qty:1},
+  {name:'Mega Dragonite ex - 290/217',        set:'ME: Ascended Heroes', raw:755.23,  psa10:0, psa9:0, gemRate:0, gradingCost:22, qty:1},
+  {name:'Mega Charizard Y ex - 294/217',      set:'ME: Ascended Heroes', raw:570.30,  psa10:0, psa9:0, gemRate:0, gradingCost:22, qty:1},
+  {name:'Pikachu ex - 277/217',               set:'ME: Ascended Heroes', raw:461.33,  psa10:0, psa9:0, gemRate:0, gradingCost:22, qty:1},
+  {name:"Team Rocket's Mewtwo ex - 281/217",  set:'ME: Ascended Heroes', raw:449.57,  psa10:0, psa9:0, gemRate:0, gradingCost:22, qty:1},
+  {name:'Mega Dragonite ex - 295/217',        set:'ME: Ascended Heroes', raw:301.35,  psa10:0, psa9:0, gemRate:0, gradingCost:22, qty:1},
+  {name:"Lillie's Clefairy ex - 280/217",     set:'ME: Ascended Heroes', raw:173.75,  psa10:0, psa9:0, gemRate:0, gradingCost:22, qty:1},
+  {name:'Mega Feraligatr ex - 274/217',       set:'ME: Ascended Heroes', raw:168.49,  psa10:0, psa9:0, gemRate:0, gradingCost:22, qty:1},
+  {name:"N's Zoroark ex - 286/217",           set:'ME: Ascended Heroes', raw:162.94,  psa10:0, psa9:0, gemRate:0, gradingCost:22, qty:1},
+  {name:"Steven's Metagross ex - 289/217",    set:'ME: Ascended Heroes', raw:106.45,  psa10:0, psa9:0, gemRate:0, gradingCost:22, qty:1},
+  {name:'Mega Froslass ex - 275/217',         set:'ME: Ascended Heroes', raw:103.09,  psa10:0, psa9:0, gemRate:0, gradingCost:22, qty:1},
+  {name:'Mega Gengar ex - 269/217',           set:'ME: Ascended Heroes', raw:99.60,   psa10:0, psa9:0, gemRate:0, gradingCost:22, qty:1},
+  {name:'Mega Meganium ex - 272/217',         set:'ME: Ascended Heroes', raw:91.96,   psa10:0, psa9:0, gemRate:0, gradingCost:22, qty:1},
+  {name:"Marnie's Grimmsnarl ex - 287/217",   set:'ME: Ascended Heroes', raw:89.12,   psa10:0, psa9:0, gemRate:0, gradingCost:22, qty:1},
+  {name:'Fezandipiti ex - 288/217',           set:'ME: Ascended Heroes', raw:88.45,   psa10:0, psa9:0, gemRate:0, gradingCost:22, qty:1},
+  {name:'Psyduck - 226/217',                  set:'ME: Ascended Heroes', raw:85.62,   psa10:0, psa9:0, gemRate:0, gradingCost:22, qty:1},
+  {name:"Iono's Bellibolt ex - 279/217",      set:'ME: Ascended Heroes', raw:73.10,   psa10:0, psa9:0, gemRate:0, gradingCost:22, qty:1},
+  {name:'Mega Scrafty ex - 285/217',          set:'ME: Ascended Heroes', raw:71.37,   psa10:0, psa9:0, gemRate:0, gradingCost:22, qty:1},
+  {name:'Mega Hawlucha ex - 283/217',         set:'ME: Ascended Heroes', raw:71.08,   psa10:0, psa9:0, gemRate:0, gradingCost:22, qty:1},
+  {name:'Mega Diancie ex - 282/217',          set:'ME: Ascended Heroes', raw:68.49,   psa10:0, psa9:0, gemRate:0, gradingCost:22, qty:1},
+  {name:'Mega Emboar ex - 273/217',           set:'ME: Ascended Heroes', raw:68.44,   psa10:0, psa9:0, gemRate:0, gradingCost:22, qty:1},
+  {name:'Mega Dragonite ex - 271/217',        set:'ME: Ascended Heroes', raw:60.26,   psa10:0, psa9:0, gemRate:0, gradingCost:22, qty:1},
+  {name:'Canari - 291/217',                   set:'ME: Ascended Heroes', raw:50.10,   psa10:0, psa9:0, gemRate:0, gradingCost:22, qty:1},
+  {name:'Mega Eelektross ex - 278/217',       set:'ME: Ascended Heroes', raw:45.20,   psa10:0, psa9:0, gemRate:0, gradingCost:22, qty:1},
+  {name:"Iris's Fighting Spirit - 292/217",   set:'ME: Ascended Heroes', raw:40.85,   psa10:0, psa9:0, gemRate:0, gradingCost:22, qty:1},
+  {name:'Surfer - 293/217',                   set:'ME: Ascended Heroes', raw:31.19,   psa10:0, psa9:0, gemRate:0, gradingCost:22, qty:1},
+  {name:"Team Rocket's Mimikyu - 238/217",    set:'ME: Ascended Heroes', raw:30.96,   psa10:0, psa9:0, gemRate:0, gradingCost:22, qty:1},
+  {name:"Erika's Tangela - 218/217",          set:'ME: Ascended Heroes', raw:25.80,   psa10:0, psa9:0, gemRate:0, gradingCost:22, qty:1},
+
+  /* ME01: Mega Evolution */
+  {name:'Mega Lucario ex - 188/132',          set:'ME01: Mega Evolution', raw:267.15, psa10:0, psa9:0, gemRate:0, gradingCost:22, qty:1},
+  {name:'Mega Gardevoir ex - 187/132',        set:'ME01: Mega Evolution', raw:229.61, psa10:0, psa9:0, gemRate:0, gradingCost:22, qty:1},
+  {name:'Mega Gardevoir ex - 178/132',        set:'ME01: Mega Evolution', raw:194.47, psa10:0, psa9:0, gemRate:0, gradingCost:22, qty:1},
+  {name:'Mega Lucario ex - 179/132',          set:'ME01: Mega Evolution', raw:180.55, psa10:0, psa9:0, gemRate:0, gradingCost:22, qty:1},
+  {name:'Mega Venusaur ex - 177/132',         set:'ME01: Mega Evolution', raw:155.62, psa10:0, psa9:0, gemRate:0, gradingCost:22, qty:1},
+  {name:'Mega Latias ex - 181/132',           set:'ME01: Mega Evolution', raw:81.85,  psa10:0, psa9:0, gemRate:0, gradingCost:22, qty:1},
+  {name:"Lillie's Determination - 184/132",   set:'ME01: Mega Evolution', raw:74.30,  psa10:0, psa9:0, gemRate:0, gradingCost:22, qty:1},
+  {name:'Mega Kangaskhan ex - 182/132',       set:'ME01: Mega Evolution', raw:62.51,  psa10:0, psa9:0, gemRate:0, gradingCost:22, qty:1},
+  {name:'Mega Absol ex - 180/132',            set:'ME01: Mega Evolution', raw:62.10,  psa10:0, psa9:0, gemRate:0, gradingCost:22, qty:1},
+  {name:"Acerola's Mischief - 183/132",       set:'ME01: Mega Evolution', raw:32.79,  psa10:0, psa9:0, gemRate:0, gradingCost:22, qty:1},
+  {name:"Wally's Compassion - 186/132",       set:'ME01: Mega Evolution', raw:23.06,  psa10:0, psa9:0, gemRate:0, gradingCost:22, qty:1},
+  {name:'Bulbasaur - 133/132',                set:'ME01: Mega Evolution', raw:22.95,  psa10:0, psa9:0, gemRate:0, gradingCost:22, qty:1},
+  {name:"Lillie's Determination - 169/132",   set:'ME01: Mega Evolution', raw:21.73,  psa10:0, psa9:0, gemRate:0, gradingCost:22, qty:1},
+  {name:'Ivysaur - 134/132',                  set:'ME01: Mega Evolution', raw:20.48,  psa10:0, psa9:0, gemRate:0, gradingCost:22, qty:1},
+
+  /* ME02: Phantasmal Flames */
+  {name:'Mega Charizard X ex - 125/094',      set:'ME02: Phantasmal Flames', raw:835.15, psa10:0, psa9:0, gemRate:0, gradingCost:22, qty:1},
+  {name:'Mega Charizard X ex - 130/094',      set:'ME02: Phantasmal Flames', raw:351.90, psa10:0, psa9:0, gemRate:0, gradingCost:22, qty:1},
+  {name:'Mega Charizard X ex - 109/094',      set:'ME02: Phantasmal Flames', raw:34.91,  psa10:0, psa9:0, gemRate:0, gradingCost:22, qty:1},
+  {name:'Dawn - 129/094',                     set:'ME02: Phantasmal Flames', raw:29.60,  psa10:0, psa9:0, gemRate:0, gradingCost:22, qty:1},
+  {name:'Mega Sharpedo ex - 127/094',         set:'ME02: Phantasmal Flames', raw:25.82,  psa10:0, psa9:0, gemRate:0, gradingCost:22, qty:1},
+  {name:'Mega Lopunny ex - 128/094',          set:'ME02: Phantasmal Flames', raw:20.82,  psa10:0, psa9:0, gemRate:0, gradingCost:22, qty:1},
+  {name:'Rotom ex - 126/094',                 set:'ME02: Phantasmal Flames', raw:20.44,  psa10:0, psa9:0, gemRate:0, gradingCost:22, qty:1},
+  {name:'Meowth - 106/094',                   set:'ME02: Phantasmal Flames', raw:17.61,  psa10:0, psa9:0, gemRate:0, gradingCost:22, qty:1},
+  {name:'Piplup - 098/094',                   set:'ME02: Phantasmal Flames', raw:15.85,  psa10:0, psa9:0, gemRate:0, gradingCost:22, qty:1},
+  {name:'Dawn - 118/094',                     set:'ME02: Phantasmal Flames', raw:8.16,   psa10:0, psa9:0, gemRate:0, gradingCost:22, qty:1},
+  {name:'Wigglytuff - 105/094',               set:'ME02: Phantasmal Flames', raw:5.43,   psa10:0, psa9:0, gemRate:0, gradingCost:22, qty:1},
+  {name:'Dewgong - 097/094',                  set:'ME02: Phantasmal Flames', raw:4.44,   psa10:0, psa9:0, gemRate:0, gradingCost:22, qty:1},
+  {name:'Flygon - 101/094',                   set:'ME02: Phantasmal Flames', raw:4.25,   psa10:0, psa9:0, gemRate:0, gradingCost:22, qty:1},
+  {name:'Mega Charizard X ex - 013/094',      set:'ME02: Phantasmal Flames', raw:4.01,   psa10:0, psa9:0, gemRate:0, gradingCost:22, qty:1},
+
+  /* SV: Black Bolt */
+  {name:'Victini - 171/086',                  set:'SV: Black Bolt', raw:496.32, psa10:0, psa9:0, gemRate:0, gradingCost:22, qty:1},
+  {name:'Zekrom ex - 172/086',                set:'SV: Black Bolt', raw:449.82, psa10:0, psa9:0, gemRate:0, gradingCost:22, qty:1},
+  {name:'Zekrom ex - 166/086',                set:'SV: Black Bolt', raw:223.95, psa10:0, psa9:0, gemRate:0, gradingCost:22, qty:1},
+  {name:'Seismitoad - 105/086',               set:'SV: Black Bolt', raw:173.41, psa10:0, psa9:0, gemRate:0, gradingCost:22, qty:1},
+  {name:'Kyurem ex - 165/086',                set:'SV: Black Bolt', raw:68.36,  psa10:0, psa9:0, gemRate:0, gradingCost:22, qty:1},
+  {name:"N's Plan - 170/086",                 set:'SV: Black Bolt', raw:61.09,  psa10:0, psa9:0, gemRate:0, gradingCost:22, qty:1},
+  {name:'Haxorus - 147/086',                  set:'SV: Black Bolt', raw:58.65,  psa10:0, psa9:0, gemRate:0, gradingCost:22, qty:1},
+  {name:'Serperior ex - 164/086',             set:'SV: Black Bolt', raw:46.22,  psa10:0, psa9:0, gemRate:0, gradingCost:22, qty:1},
+  {name:'Krookodile - 137/086',               set:'SV: Black Bolt', raw:45.35,  psa10:0, psa9:0, gemRate:0, gradingCost:22, qty:1},
+  {name:'Genesect ex - 169/086',              set:'SV: Black Bolt', raw:44.07,  psa10:0, psa9:0, gemRate:0, gradingCost:22, qty:1},
+  {name:'Meloetta ex - 167/086',              set:'SV: Black Bolt', raw:37.39,  psa10:0, psa9:0, gemRate:0, gradingCost:22, qty:1},
+  {name:'Lilligant - 092/086',                set:'SV: Black Bolt', raw:36.89,  psa10:0, psa9:0, gemRate:0, gradingCost:22, qty:1},
+  {name:'Volcarona - 100/086',                set:'SV: Black Bolt', raw:34.47,  psa10:0, psa9:0, gemRate:0, gradingCost:22, qty:1},
+  {name:'Amoonguss - 096/086',                set:'SV: Black Bolt', raw:34.13,  psa10:0, psa9:0, gemRate:0, gradingCost:22, qty:1},
+  {name:'Dwebble - 129/086',                  set:'SV: Black Bolt', raw:28.89,  psa10:0, psa9:0, gemRate:0, gradingCost:22, qty:1},
+  {name:'Solosis - 118/086',                  set:'SV: Black Bolt', raw:27.13,  psa10:0, psa9:0, gemRate:0, gradingCost:22, qty:1},
+  {name:'Maractus (Master Ball Pattern) - 008/086', set:'SV: Black Bolt', raw:26.23, psa10:0, psa9:0, gemRate:0, gradingCost:22, qty:1},
+  {name:'Simisage (Master Ball Pattern) - 005/086', set:'SV: Black Bolt', raw:23.55, psa10:0, psa9:0, gemRate:0, gradingCost:22, qty:1},
+  {name:'Audino - 151/086',                   set:'SV: Black Bolt', raw:23.28,  psa10:0, psa9:0, gemRate:0, gradingCost:22, qty:1},
+  {name:'Conkeldurr - 127/086',               set:'SV: Black Bolt', raw:22.54,  psa10:0, psa9:0, gemRate:0, gradingCost:22, qty:1},
+  {name:'Klinklang - 141/086',                set:'SV: Black Bolt', raw:21.59,  psa10:0, psa9:0, gemRate:0, gradingCost:22, qty:1},
+  {name:'Snivy - 087/086',                    set:'SV: Black Bolt', raw:21.38,  psa10:0, psa9:0, gemRate:0, gradingCost:22, qty:1},
+  {name:'Scolipede - 134/086',                set:'SV: Black Bolt', raw:21.00,  psa10:0, psa9:0, gemRate:0, gradingCost:22, qty:1},
+  {name:'Scolipede (Master Ball Pattern) - 056/086', set:'SV: Black Bolt', raw:21.13, psa10:0, psa9:0, gemRate:0, gradingCost:22, qty:1},
 ];
 
 /* ─── Utils ─── */
@@ -405,7 +492,7 @@ function calc(c){
 }
 
 /* ─── Storage ─── */
-var LS='gemfinder_v2';
+var LS='gemfinder_v3';
 function save(){
   try{localStorage.setItem(LS,JSON.stringify(cards));}
   catch(e){
