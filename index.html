@@ -1,0 +1,919 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pokémon Card Grading ROI Tracker</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0d1117;
+  --surface:#161b22;
+  --border:#30363d;
+  --text:#e6edf3;
+  --muted:#8b949e;
+  --accent:#58a6ff;
+  --green:#3fb950;
+  --red:#f85149;
+  --warn:#d29922;
+}
+body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',ui-monospace,monospace;font-size:14px;line-height:1.5;min-height:100vh;padding:24px 20px}
+a{color:var(--accent)}
+h1{font-size:1.35rem;font-weight:700;color:var(--text);margin-bottom:4px}
+.subtitle{color:var(--muted);font-size:0.82rem;margin-bottom:22px}
+
+/* ── Dashboard ── */
+.dashboard{display:grid;grid-template-columns:repeat(auto-fill,minmax(175px,1fr));gap:10px;margin-bottom:22px}
+.stat-card{background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:14px 16px}
+.stat-label{font-size:0.7rem;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px}
+.stat-value{font-size:1.15rem;font-weight:700;color:var(--text)}
+.stat-value.pos{color:var(--green)}.stat-value.neg{color:var(--red)}
+.stat-sub{font-size:0.72rem;color:var(--muted);margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+/* ── Form ── */
+.form-section{background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:18px 20px;margin-bottom:20px}
+.form-section h2{font-size:0.95rem;font-weight:600;margin-bottom:14px}
+.form-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:13px;margin-bottom:14px}
+.form-group{display:flex;flex-direction:column;gap:4px}
+.form-group label{font-size:0.75rem;color:var(--muted);font-weight:500}
+.form-group input[type="text"],
+.form-group input[type="number"]{background:var(--bg);border:1px solid var(--border);border-radius:4px;color:var(--text);padding:7px 10px;font-size:0.875rem;outline:none;transition:border-color .15s,box-shadow .15s;width:100%}
+.form-group input:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(88,166,255,.1)}
+.form-group input.err{border-color:var(--red)}
+.field-error{font-size:0.72rem;color:var(--red)}
+.form-full{grid-column:1 / -1}
+input[type="file"]{background:var(--bg);border:1px dashed var(--border);border-radius:4px;color:var(--text);padding:6px 10px;font-size:0.8rem;cursor:pointer;width:100%}
+input[type="file"]::-webkit-file-upload-button{background:var(--surface);border:1px solid var(--border);color:var(--text);padding:3px 8px;border-radius:3px;cursor:pointer;font-size:0.78rem;margin-right:8px}
+.img-row{display:flex;align-items:center;gap:12px;margin-top:3px}
+.form-thumb,.form-thumb-ph{width:48px;height:67px;border-radius:4px;border:1px solid var(--border);flex-shrink:0}
+.form-thumb{object-fit:cover;display:block}
+.form-thumb-ph{background:var(--border);display:flex;align-items:center;justify-content:center;font-size:.55rem;color:var(--muted);text-align:center}
+.warn-txt{font-size:0.72rem;color:var(--warn);margin-top:4px}
+
+/* ── Buttons ── */
+.btn{background:var(--accent);color:#0d1117;border:none;border-radius:4px;padding:7px 16px;font-size:0.875rem;font-weight:600;cursor:pointer;transition:opacity .15s;white-space:nowrap}
+.btn:hover{opacity:.85}.btn:active{opacity:.7}
+.btn-sec{background:var(--surface);color:var(--text);border:1px solid var(--border)}
+.btn-sm{padding:5px 11px;font-size:0.8rem}
+.btn-del{background:transparent;color:var(--red);border:1px solid var(--red);padding:3px 9px;font-size:0.78rem;border-radius:3px;cursor:pointer;white-space:nowrap;transition:opacity .15s}
+.btn-del:hover{opacity:.75}
+.form-actions{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+
+/* ── Toolbar ── */
+.toolbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:12px}
+.toolbar-right{margin-left:auto;display:flex;flex-wrap:wrap;gap:7px}
+.count-lbl{font-size:0.82rem;color:var(--muted)}
+label.btn{display:inline-block}
+
+/* ── Table ── */
+.tbl-wrap{overflow-x:auto;overflow-y:auto;max-height:65vh;border:1px solid var(--border);border-radius:6px}
+table{width:100%;border-collapse:collapse;min-width:1080px}
+thead tr{background:var(--surface)}
+th{background:var(--surface);color:var(--muted);font-size:0.7rem;font-weight:600;text-transform:uppercase;letter-spacing:.06em;padding:10px 11px;text-align:left;white-space:nowrap;cursor:pointer;user-select:none;border-bottom:1px solid var(--border);transition:color .15s;position:sticky;top:0;z-index:5}
+th:hover{color:var(--text)}
+th.sa{color:var(--accent)}
+th .si{margin-left:4px;opacity:.4;font-style:normal}
+th.sa .si{opacity:1}
+th.no-sort{cursor:default}
+td{padding:8px 11px;border-bottom:1px solid var(--border);vertical-align:middle;white-space:nowrap}
+tr:last-child td{border-bottom:none}
+tbody tr:nth-child(even){background:var(--surface)}
+tbody tr:nth-child(odd){background:var(--bg)}
+tbody tr:hover{background:rgba(88,166,255,.05)}
+.pos-val{color:var(--green);font-weight:600}
+.neg-val{color:var(--red);font-weight:600}
+.thumb{width:40px;height:56px;object-fit:cover;border-radius:4px;border:1px solid var(--border);cursor:pointer;display:block;transition:border-color .15s}
+.thumb:hover{border-color:var(--accent)}
+.thumb-ph{width:40px;height:56px;background:var(--border);border-radius:4px;border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:.52rem;color:var(--muted);text-align:center;line-height:1.2}
+.editable{cursor:pointer;border-bottom:1px dashed transparent;transition:border-color .15s}
+.editable:hover{border-bottom-color:var(--accent)}
+.inline-inp{background:var(--bg);border:1px solid var(--accent);border-radius:3px;color:var(--text);padding:2px 6px;font-size:0.85rem;width:82px;outline:none}
+
+/* ── Empty state ── */
+.empty{text-align:center;padding:60px 20px;color:var(--muted)}
+.empty-title{font-size:.95rem;font-weight:600;color:var(--text);margin-bottom:7px}
+
+/* ── Modals ── */
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.78);z-index:1000;align-items:center;justify-content:center}
+.overlay.on{display:flex}
+.modal-box{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:22px;position:relative}
+.modal-img-box{max-width:340px;width:90%}
+.modal-img{max-width:300px;width:100%;border-radius:6px;display:block;margin:0 auto}
+.modal-name{text-align:center;margin-top:12px;font-weight:600}
+.modal-set{text-align:center;font-size:0.78rem;color:var(--muted);margin-top:3px}
+.modal-close{position:absolute;top:9px;right:13px;background:none;border:none;color:var(--muted);font-size:1.2rem;cursor:pointer;padding:4px;line-height:1}
+.modal-close:hover{color:var(--text)}
+.confirm-box{max-width:360px;width:90%}
+.confirm-box h3{margin-bottom:9px;font-size:.95rem}
+.confirm-box p{color:var(--muted);font-size:.85rem;margin-bottom:18px}
+.confirm-btns{display:flex;gap:10px;justify-content:flex-end}
+
+/* ── Toast ── */
+.toast{position:fixed;bottom:20px;right:20px;background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:12px 18px;font-size:.85rem;z-index:2000;max-width:360px;box-shadow:0 4px 14px rgba(0,0,0,.45);transform:translateY(80px);opacity:0;transition:transform .28s,opacity .28s;pointer-events:none}
+.toast.show{transform:translateY(0);opacity:1}
+.toast.ok{border-left:3px solid var(--green)}
+.toast.er{border-left:3px solid var(--red)}
+.toast.wn{border-left:3px solid var(--warn)}
+
+.hidden{display:none!important}
+
+@media(max-width:640px){
+  body{padding:12px}
+  .form-grid{grid-template-columns:1fr 1fr}
+  .toolbar{flex-direction:column;align-items:stretch}
+  .toolbar-right{margin-left:0}
+  .dashboard{grid-template-columns:1fr 1fr}
+}
+@media(max-width:380px){
+  .form-grid{grid-template-columns:1fr}
+  .dashboard{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+
+<h1>Pokémon Card Grading ROI Tracker</h1>
+<p class="subtitle">Raw-to-graded arbitrage calculator — PSA gem rate, EV, and batch profit per card</p>
+
+<!-- Dashboard -->
+<div class="dashboard">
+  <div class="stat-card">
+    <div class="stat-label">Cards Tracked</div>
+    <div class="stat-value" id="s-total">0</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-label">Average ROI %</div>
+    <div class="stat-value" id="s-avg-roi">—</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-label">Total Batch Profit</div>
+    <div class="stat-value" id="s-batch">$0.00</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-label">Highest ROI</div>
+    <div class="stat-value pos" id="s-hi-val">—</div>
+    <div class="stat-sub" id="s-hi-name">—</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-label">Lowest ROI</div>
+    <div class="stat-value" id="s-lo-val">—</div>
+    <div class="stat-sub" id="s-lo-name">—</div>
+  </div>
+</div>
+
+<!-- Add Card Form -->
+<div class="form-section">
+  <h2>Add Card</h2>
+  <form id="add-form" novalidate autocomplete="off">
+    <div class="form-grid">
+      <div class="form-group">
+        <label for="f-name">Card Name *</label>
+        <input type="text" id="f-name" placeholder="Charizard ex">
+        <span class="field-error hidden" id="e-name">Name is required</span>
+      </div>
+      <div class="form-group">
+        <label for="f-set">Set Name *</label>
+        <input type="text" id="f-set" placeholder="Scarlet &amp; Violet 7">
+        <span class="field-error hidden" id="e-set">Set is required</span>
+      </div>
+      <div class="form-group">
+        <label for="f-raw">Raw Price ($) *</label>
+        <input type="number" id="f-raw" placeholder="45.00" min="0" step="0.01">
+        <span class="field-error hidden" id="e-raw">Required, must be ≥ 0</span>
+      </div>
+      <div class="form-group">
+        <label for="f-p10">PSA 10 Price ($) *</label>
+        <input type="number" id="f-p10" placeholder="350.00" min="0" step="0.01">
+        <span class="field-error hidden" id="e-p10">Required, must be ≥ 0</span>
+      </div>
+      <div class="form-group">
+        <label for="f-p9">PSA 9 Price ($) *</label>
+        <input type="number" id="f-p9" placeholder="120.00" min="0" step="0.01">
+        <span class="field-error hidden" id="e-p9">Required, must be ≥ 0</span>
+      </div>
+      <div class="form-group">
+        <label for="f-gem">Gem Rate % *</label>
+        <input type="number" id="f-gem" placeholder="45" min="0" max="100" step="0.1">
+        <span class="field-error hidden" id="e-gem">Required, 0–100</span>
+      </div>
+      <div class="form-group">
+        <label for="f-gcost">Grading Cost ($)</label>
+        <input type="number" id="f-gcost" placeholder="22.00" min="0" step="0.01" value="22">
+      </div>
+      <div class="form-group">
+        <label for="f-qty">Quantity</label>
+        <input type="number" id="f-qty" placeholder="1" min="1" step="1" value="1">
+      </div>
+      <div class="form-group form-full">
+        <label for="f-img">Card Image (optional · .jpg / .png / .webp · max 500 KB)</label>
+        <div class="img-row">
+          <div class="form-thumb-ph" id="f-img-ph">No Image</div>
+          <img class="form-thumb hidden" id="f-img-prev" src="" alt="preview">
+          <div style="flex:1">
+            <input type="file" id="f-img" accept=".jpg,.jpeg,.png,.webp">
+            <div class="warn-txt hidden" id="f-img-warn">⚠ Image exceeds 500 KB — large images consume more localStorage space.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="form-actions">
+      <button type="submit" class="btn">Add Card</button>
+      <button type="button" class="btn btn-sec" id="btn-clear">Clear</button>
+    </div>
+  </form>
+</div>
+
+<!-- Toolbar -->
+<div class="toolbar">
+  <span class="count-lbl" id="count-lbl">0 cards</span>
+  <div class="toolbar-right">
+    <button class="btn btn-sec btn-sm" id="btn-csv">Export CSV</button>
+    <button class="btn btn-sec btn-sm" id="btn-json">Export JSON</button>
+    <label class="btn btn-sec btn-sm">Import JSON<input type="file" id="in-json" accept=".json" class="hidden"></label>
+    <label class="btn btn-sec btn-sm">Import CSV<input type="file" id="in-csv" accept=".csv" class="hidden"></label>
+  </div>
+</div>
+
+<!-- Table -->
+<div class="tbl-wrap hidden" id="tbl-wrap">
+  <table id="main-tbl">
+    <thead>
+      <tr>
+        <th class="no-sort">Image</th>
+        <th data-col="name">Card Name <i class="si">⇅</i></th>
+        <th data-col="set">Set <i class="si">⇅</i></th>
+        <th data-col="raw">Raw <i class="si">⇅</i></th>
+        <th data-col="psa10">PSA 10 <i class="si">⇅</i></th>
+        <th data-col="psa9">PSA 9 <i class="si">⇅</i></th>
+        <th data-col="gemRate">Gem Rate <i class="si">⇅</i></th>
+        <th data-col="ev">EV <i class="si">⇅</i></th>
+        <th data-col="cost">Cost <i class="si">⇅</i></th>
+        <th data-col="profit">Profit <i class="si">⇅</i></th>
+        <th data-col="roi">ROI % <i class="si">⇅</i></th>
+        <th data-col="qty">Qty <i class="si">⇅</i></th>
+        <th data-col="batchProfit">Batch Profit <i class="si">⇅</i></th>
+        <th class="no-sort">Actions</th>
+      </tr>
+    </thead>
+    <tbody id="tbl-body"></tbody>
+  </table>
+</div>
+
+<!-- Empty state -->
+<div class="empty" id="empty-state">
+  <div class="empty-title">No cards tracked yet</div>
+  <div>Add a card using the form above to start calculating grading ROI.</div>
+</div>
+
+<!-- Image Modal -->
+<div class="overlay" id="img-overlay" role="dialog" aria-modal="true" aria-label="Card image viewer">
+  <div class="modal-box modal-img-box" id="img-modal-box">
+    <button class="modal-close" id="img-close" aria-label="Close">✕</button>
+    <img class="modal-img" id="modal-img" src="" alt="">
+    <div class="modal-name" id="modal-name"></div>
+    <div class="modal-set" id="modal-set"></div>
+  </div>
+</div>
+
+<!-- Confirm Delete Modal -->
+<div class="overlay" id="del-overlay" role="dialog" aria-modal="true" aria-label="Confirm deletion">
+  <div class="modal-box confirm-box">
+    <h3>Delete Card</h3>
+    <p id="del-msg">Are you sure you want to delete this card? This cannot be undone.</p>
+    <div class="confirm-btns">
+      <button class="btn btn-sec btn-sm" id="del-cancel">Cancel</button>
+      <button class="btn btn-sm" id="del-ok" style="background:var(--red);color:#fff">Delete</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast" role="alert" aria-live="polite"></div>
+
+<script>
+(function () {
+'use strict';
+
+/* ─────────────────────────── State ─────────────────────────── */
+var cards = [];
+var sortCol = null;
+var sortDir = 1; // 1 = asc, -1 = desc
+var pendingDelId = null;
+var formImageB64 = null;
+var toastTimer = null;
+
+/* ─────────────────────────── Utils ─────────────────────────── */
+function uid() {
+  return Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+}
+
+function fmtUSD(v) {
+  if (v === null || v === undefined || isNaN(v)) return '—';
+  return '$' + Number(v).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+
+function fmtPct(v) {
+  if (v === null || v === undefined || isNaN(v)) return 'N/A';
+  return Number(v).toFixed(1) + '%';
+}
+
+function el(id) { return document.getElementById(id); }
+
+function show(id) { el(id).classList.remove('hidden'); }
+function hide(id) { el(id).classList.add('hidden'); }
+
+/* ─────────────────────────── ROI calc ─────────────────────────── */
+function calcCard(c) {
+  var gr = c.gemRate / 100;
+  var ev = gr * c.psa10 + (1 - gr) * c.psa9;
+  var cost = c.raw + c.gradingCost;
+  var profit = ev - cost;
+  var roi = cost !== 0 ? (profit / cost) * 100 : null;
+  var batchProfit = profit * c.qty;
+  return { ev: ev, cost: cost, profit: profit, roi: roi, batchProfit: batchProfit };
+}
+
+/* ─────────────────────────── Storage ─────────────────────────── */
+var LS = 'pgtv1';
+
+function save() {
+  try {
+    localStorage.setItem(LS, JSON.stringify(cards));
+  } catch (e) {
+    if (e.name === 'QuotaExceededError' || (e.code && e.code === 22) || e.name === 'NS_ERROR_DOM_QUOTA_REACHED') {
+      toast('Storage quota exceeded! Export your data as JSON immediately, then remove cards with large images to free space.', 'er', 7000);
+    }
+  }
+}
+
+function load() {
+  try {
+    var raw = localStorage.getItem(LS);
+    if (!raw) return;
+    var parsed = JSON.parse(raw);
+    if (Array.isArray(parsed)) cards = parsed;
+  } catch (e) {
+    toast('Could not load saved data: ' + e.message, 'er');
+  }
+}
+
+/* ─────────────────────────── Toast ─────────────────────────── */
+function toast(msg, type, dur) {
+  dur = dur || 3200;
+  var t = el('toast');
+  t.textContent = msg;
+  t.className = 'toast ' + (type || 'ok');
+  void t.offsetWidth;
+  t.classList.add('show');
+  if (toastTimer) clearTimeout(toastTimer);
+  toastTimer = setTimeout(function () { t.classList.remove('show'); }, dur);
+}
+
+/* ─────────────────────────── Form ─────────────────────────── */
+function clearForm() {
+  el('f-name').value = '';
+  el('f-set').value = '';
+  el('f-raw').value = '';
+  el('f-p10').value = '';
+  el('f-p9').value = '';
+  el('f-gem').value = '';
+  el('f-gcost').value = '22';
+  el('f-qty').value = '1';
+  el('f-img').value = '';
+  formImageB64 = null;
+  hide('f-img-prev'); show('f-img-ph');
+  hide('f-img-warn');
+  clearErrors();
+}
+
+function clearErrors() {
+  ['name','set','raw','p10','p9','gem'].forEach(function (k) {
+    hide('e-' + k);
+    var inp = el('f-' + k);
+    if (inp) inp.classList.remove('err');
+  });
+}
+
+function validate() {
+  var ok = true;
+  function check(fid, eid, fn) {
+    var inp = el('f-' + fid);
+    var v = inp.value;
+    if (!fn(v)) {
+      show('e-' + eid); inp.classList.add('err'); ok = false;
+    } else {
+      hide('e-' + eid); inp.classList.remove('err');
+    }
+  }
+  check('name', 'name', function (v) { return v.trim().length > 0; });
+  check('set',  'set',  function (v) { return v.trim().length > 0; });
+  check('raw',  'raw',  function (v) { return v !== '' && !isNaN(+v) && +v >= 0; });
+  check('p10',  'p10',  function (v) { return v !== '' && !isNaN(+v) && +v >= 0; });
+  check('p9',   'p9',   function (v) { return v !== '' && !isNaN(+v) && +v >= 0; });
+  check('gem',  'gem',  function (v) { return v !== '' && !isNaN(+v) && +v >= 0 && +v <= 100; });
+  return ok;
+}
+
+el('add-form').addEventListener('submit', function (e) {
+  e.preventDefault();
+  if (!validate()) return;
+  var gcostRaw = parseFloat(el('f-gcost').value);
+  var qtyRaw   = parseInt(el('f-qty').value, 10);
+  var card = {
+    id:          uid(),
+    name:        el('f-name').value.trim(),
+    set:         el('f-set').value.trim(),
+    raw:         parseFloat(el('f-raw').value),
+    psa10:       parseFloat(el('f-p10').value),
+    psa9:        parseFloat(el('f-p9').value),
+    gemRate:     parseFloat(el('f-gem').value),
+    gradingCost: !isNaN(gcostRaw) && gcostRaw >= 0 ? gcostRaw : 22,
+    qty:         !isNaN(qtyRaw) && qtyRaw >= 1 ? qtyRaw : 1,
+    image:       formImageB64 || null,
+  };
+  cards.push(card);
+  save();
+  render();
+  clearForm();
+  toast('Added: ' + card.name, 'ok');
+});
+
+el('btn-clear').addEventListener('click', clearForm);
+
+/* ─────────────────────────── Image upload ─────────────────────────── */
+el('f-img').addEventListener('change', function (e) {
+  var file = e.target.files[0];
+  if (!file) {
+    formImageB64 = null;
+    hide('f-img-prev'); show('f-img-ph'); hide('f-img-warn');
+    return;
+  }
+  if (file.size > 500 * 1024) show('f-img-warn');
+  else hide('f-img-warn');
+
+  var reader = new FileReader();
+  reader.onload = function (ev) {
+    formImageB64 = ev.target.result;
+    el('f-img-prev').src = formImageB64;
+    show('f-img-prev'); hide('f-img-ph');
+  };
+  reader.readAsDataURL(file);
+});
+
+/* ─────────────────────────── Render table ─────────────────────────── */
+function sortedCards() {
+  if (!sortCol) return cards.slice();
+  return cards.slice().sort(function (a, b) {
+    var va, vb;
+    if (sortCol === 'ev' || sortCol === 'cost' || sortCol === 'profit' || sortCol === 'roi' || sortCol === 'batchProfit') {
+      var ca = calcCard(a), cb = calcCard(b);
+      va = ca[sortCol]; vb = cb[sortCol];
+      if (va === null) va = -Infinity;
+      if (vb === null) vb = -Infinity;
+    } else if (sortCol === 'name' || sortCol === 'set') {
+      va = (a[sortCol] || '').toLowerCase();
+      vb = (b[sortCol] || '').toLowerCase();
+      if (va < vb) return -sortDir;
+      if (va > vb) return sortDir;
+      return 0;
+    } else {
+      va = a[sortCol]; vb = b[sortCol];
+    }
+    if (va < vb) return -sortDir;
+    if (va > vb) return sortDir;
+    return 0;
+  });
+}
+
+function render() {
+  /* Sort header decorations */
+  document.querySelectorAll('th[data-col]').forEach(function (th) {
+    var col = th.dataset.col;
+    var icon = th.querySelector('.si');
+    if (col === sortCol) {
+      th.classList.add('sa');
+      if (icon) icon.textContent = sortDir === 1 ? '▲' : '▼';
+    } else {
+      th.classList.remove('sa');
+      if (icon) icon.textContent = '⇅';
+    }
+  });
+
+  el('count-lbl').textContent = cards.length + ' card' + (cards.length !== 1 ? 's' : '');
+
+  if (cards.length === 0) {
+    hide('tbl-wrap'); show('empty-state');
+    renderDashboard();
+    return;
+  }
+  show('tbl-wrap'); hide('empty-state');
+
+  var sorted = sortedCards();
+  var tbody = el('tbl-body');
+  tbody.innerHTML = '';
+
+  sorted.forEach(function (card) {
+    var calc = calcCard(card);
+    var tr = document.createElement('tr');
+    tr.dataset.id = card.id;
+
+    /* Image */
+    var tdImg = document.createElement('td');
+    if (card.image) {
+      var img = document.createElement('img');
+      img.src = card.image;
+      img.alt = card.name;
+      img.className = 'thumb';
+      img.title = 'Click to enlarge';
+      img.addEventListener('click', openImgModal.bind(null, card));
+      tdImg.appendChild(img);
+    } else {
+      var ph = document.createElement('div');
+      ph.className = 'thumb-ph';
+      ph.textContent = 'No Image';
+      tdImg.appendChild(ph);
+    }
+    tr.appendChild(tdImg);
+
+    /* Text fields */
+    appendTd(tr, card.name);
+    appendTd(tr, card.set);
+
+    /* Editable numeric fields */
+    var editDefs = [
+      { key: 'raw',     fmt: fmtUSD,  min: 0, max: Infinity, step: 0.01, isInt: false },
+      { key: 'psa10',   fmt: fmtUSD,  min: 0, max: Infinity, step: 0.01, isInt: false },
+      { key: 'psa9',    fmt: fmtUSD,  min: 0, max: Infinity, step: 0.01, isInt: false },
+      { key: 'gemRate', fmt: fmtPct,  min: 0, max: 100,      step: 0.1,  isInt: false },
+    ];
+    editDefs.forEach(function (def) {
+      var td = document.createElement('td');
+      td.className = 'editable';
+      td.title = 'Click to edit';
+      td.textContent = def.fmt(card[def.key]);
+      td.addEventListener('click', function () { startEdit(td, card, def); });
+      tr.appendChild(td);
+    });
+
+    /* Calculated: EV */
+    appendTd(tr, fmtUSD(calc.ev));
+
+    /* Calculated: Cost */
+    appendTd(tr, fmtUSD(calc.cost));
+
+    /* Calculated: Profit */
+    var tdProfit = appendTd(tr, fmtUSD(calc.profit));
+    tdProfit.className = calc.profit >= 0 ? 'pos-val' : 'neg-val';
+
+    /* Calculated: ROI % */
+    var tdROI = appendTd(tr, calc.roi === null ? 'N/A' : fmtPct(calc.roi));
+    if (calc.roi !== null) tdROI.className = calc.roi >= 0 ? 'pos-val' : 'neg-val';
+
+    /* Qty — editable */
+    var tdQty = document.createElement('td');
+    tdQty.className = 'editable';
+    tdQty.title = 'Click to edit';
+    tdQty.textContent = card.qty;
+    tdQty.addEventListener('click', function () {
+      startEdit(tdQty, card, { key: 'qty', fmt: function (v) { return String(v); }, min: 1, max: 99999, step: 1, isInt: true });
+    });
+    tr.appendChild(tdQty);
+
+    /* Batch Profit */
+    var tdBatch = appendTd(tr, fmtUSD(calc.batchProfit));
+    tdBatch.className = calc.batchProfit >= 0 ? 'pos-val' : 'neg-val';
+
+    /* Actions */
+    var tdAct = document.createElement('td');
+    var btnDel = document.createElement('button');
+    btnDel.className = 'btn-del';
+    btnDel.textContent = 'Delete';
+    btnDel.addEventListener('click', function () { confirmDel(card.id, card.name); });
+    tdAct.appendChild(btnDel);
+    tr.appendChild(tdAct);
+
+    tbody.appendChild(tr);
+  });
+
+  renderDashboard();
+}
+
+function appendTd(tr, text) {
+  var td = document.createElement('td');
+  td.textContent = text;
+  tr.appendChild(td);
+  return td;
+}
+
+/* ─────────────────────────── Inline edit ─────────────────────────── */
+function startEdit(td, card, def) {
+  if (td.querySelector('input')) return;
+  var orig = card[def.key];
+  var canceled = false;
+
+  var inp = document.createElement('input');
+  inp.type = 'number';
+  inp.className = 'inline-inp';
+  inp.value = orig;
+  inp.min = def.min;
+  if (def.max !== Infinity) inp.max = def.max;
+  inp.step = def.step;
+
+  td.textContent = '';
+  td.appendChild(inp);
+  inp.focus();
+  inp.select();
+
+  inp.addEventListener('keydown', function (e) {
+    if (e.key === 'Enter') { inp.blur(); }
+    if (e.key === 'Escape') {
+      canceled = true;
+      inp.blur();
+    }
+  });
+
+  inp.addEventListener('blur', function () {
+    if (canceled) {
+      td.textContent = def.fmt(orig);
+      return;
+    }
+    var v = parseFloat(inp.value);
+    if (!isNaN(v) && v >= def.min && v <= def.max) {
+      card[def.key] = def.isInt ? Math.round(v) : v;
+      save();
+      render();
+    } else {
+      td.textContent = def.fmt(orig);
+    }
+  });
+}
+
+/* ─────────────────────────── Sort ─────────────────────────── */
+document.querySelectorAll('th[data-col]').forEach(function (th) {
+  th.addEventListener('click', function () {
+    var col = th.dataset.col;
+    if (sortCol === col) sortDir = -sortDir;
+    else { sortCol = col; sortDir = 1; }
+    render();
+  });
+});
+
+/* ─────────────────────────── Dashboard ─────────────────────────── */
+function renderDashboard() {
+  var n = cards.length;
+  el('s-total').textContent = n;
+
+  if (n === 0) {
+    el('s-avg-roi').textContent = '—'; el('s-avg-roi').className = 'stat-value';
+    el('s-batch').textContent = '$0.00'; el('s-batch').className = 'stat-value';
+    el('s-hi-val').textContent = '—'; el('s-hi-name').textContent = '—';
+    el('s-lo-val').textContent = '—'; el('s-lo-name').textContent = '—';
+    return;
+  }
+
+  var calcs = cards.map(function (c) {
+    var r = calcCard(c);
+    return { name: c.name, roi: r.roi, batchProfit: r.batchProfit };
+  });
+
+  var validROI = calcs.filter(function (c) { return c.roi !== null; });
+  var totalBatch = calcs.reduce(function (s, c) { return s + c.batchProfit; }, 0);
+
+  if (validROI.length > 0) {
+    var avg = validROI.reduce(function (s, c) { return s + c.roi; }, 0) / validROI.length;
+    el('s-avg-roi').textContent = fmtPct(avg);
+    el('s-avg-roi').className = 'stat-value ' + (avg >= 0 ? 'pos' : 'neg');
+  } else {
+    el('s-avg-roi').textContent = 'N/A'; el('s-avg-roi').className = 'stat-value';
+  }
+
+  el('s-batch').textContent = fmtUSD(totalBatch);
+  el('s-batch').className = 'stat-value ' + (totalBatch >= 0 ? 'pos' : 'neg');
+
+  if (validROI.length > 0) {
+    var hi = validROI.reduce(function (m, c) { return c.roi > m.roi ? c : m; }, validROI[0]);
+    var lo = validROI.reduce(function (m, c) { return c.roi < m.roi ? c : m; }, validROI[0]);
+    el('s-hi-val').textContent = fmtPct(hi.roi); el('s-hi-val').className = 'stat-value pos';
+    el('s-hi-name').textContent = hi.name;
+    el('s-lo-val').textContent = fmtPct(lo.roi); el('s-lo-val').className = 'stat-value ' + (lo.roi >= 0 ? 'pos' : 'neg');
+    el('s-lo-name').textContent = lo.name;
+  } else {
+    el('s-hi-val').textContent = '—'; el('s-hi-name').textContent = '—';
+    el('s-lo-val').textContent = '—'; el('s-lo-name').textContent = '—';
+  }
+}
+
+/* ─────────────────────────── Delete ─────────────────────────── */
+function confirmDel(id, name) {
+  pendingDelId = id;
+  el('del-msg').textContent = 'Delete "' + name + '"? This cannot be undone.';
+  el('del-overlay').classList.add('on');
+}
+
+el('del-cancel').addEventListener('click', function () {
+  pendingDelId = null; el('del-overlay').classList.remove('on');
+});
+
+el('del-ok').addEventListener('click', function () {
+  if (pendingDelId) {
+    var idx = cards.findIndex(function (c) { return c.id === pendingDelId; });
+    var name = idx >= 0 ? cards[idx].name : 'card';
+    cards = cards.filter(function (c) { return c.id !== pendingDelId; });
+    save(); render();
+    toast('Deleted: ' + name, 'ok');
+  }
+  pendingDelId = null; el('del-overlay').classList.remove('on');
+});
+
+el('del-overlay').addEventListener('click', function (e) {
+  if (e.target === this) { pendingDelId = null; this.classList.remove('on'); }
+});
+
+/* ─────────────────────────── Image modal ─────────────────────────── */
+function openImgModal(card) {
+  el('modal-img').src = card.image;
+  el('modal-img').alt = card.name;
+  el('modal-name').textContent = card.name;
+  el('modal-set').textContent = card.set;
+  el('img-overlay').classList.add('on');
+}
+
+function closeImgModal() {
+  el('img-overlay').classList.remove('on');
+  el('modal-img').src = '';
+}
+
+el('img-close').addEventListener('click', closeImgModal);
+el('img-overlay').addEventListener('click', function (e) {
+  if (e.target === this) closeImgModal();
+});
+
+document.addEventListener('keydown', function (e) {
+  if (e.key === 'Escape') {
+    closeImgModal();
+    pendingDelId = null; el('del-overlay').classList.remove('on');
+  }
+});
+
+/* ─────────────────────────── CSV export ─────────────────────────── */
+var CSV_HEADERS = ['Card Name','Set','Raw Price','PSA 10 Price','PSA 9 Price','Gem Rate %','Grading Cost','Qty','EV','Cost','Profit','ROI %','Batch Profit'];
+
+el('btn-csv').addEventListener('click', function () {
+  if (!cards.length) { toast('No cards to export.', 'wn'); return; }
+  var rows = [CSV_HEADERS.join(',')];
+  cards.forEach(function (c) {
+    var calc = calcCard(c);
+    rows.push([
+      csvQ(c.name), csvQ(c.set),
+      c.raw, c.psa10, c.psa9, c.gemRate, c.gradingCost, c.qty,
+      calc.ev.toFixed(2), calc.cost.toFixed(2), calc.profit.toFixed(2),
+      calc.roi !== null ? calc.roi.toFixed(2) : 'N/A',
+      calc.batchProfit.toFixed(2)
+    ].join(','));
+  });
+  dlBlob(rows.join('\n'), 'poke_grading_roi.csv', 'text/csv');
+  toast('CSV exported (' + cards.length + ' cards).', 'ok');
+});
+
+function csvQ(s) {
+  s = String(s);
+  if (s.indexOf(',') > -1 || s.indexOf('"') > -1 || s.indexOf('\n') > -1) {
+    return '"' + s.replace(/"/g, '""') + '"';
+  }
+  return s;
+}
+
+/* ─────────────────────────── JSON export ─────────────────────────── */
+el('btn-json').addEventListener('click', function () {
+  if (!cards.length) { toast('No cards to export.', 'wn'); return; }
+  dlBlob(JSON.stringify(cards, null, 2), 'poke_grading_backup.json', 'application/json');
+  toast('JSON exported (' + cards.length + ' cards, images included).', 'ok');
+});
+
+/* ─────────────────────────── JSON import ─────────────────────────── */
+el('in-json').addEventListener('change', function (e) {
+  var file = e.target.files[0]; if (!file) return;
+  var reader = new FileReader();
+  reader.onload = function (ev) {
+    try {
+      var data = JSON.parse(ev.target.result);
+      if (!Array.isArray(data)) throw new Error('JSON root must be an array');
+      var added = 0;
+      data.forEach(function (item) {
+        if (!item || !item.name || item.set === undefined) return;
+        var gCost = parseFloat(item.gradingCost);
+        var card = {
+          id:          uid(),
+          name:        String(item.name),
+          set:         String(item.set),
+          raw:         parseFloat(item.raw) || 0,
+          psa10:       parseFloat(item.psa10) || 0,
+          psa9:        parseFloat(item.psa9) || 0,
+          gemRate:     parseFloat(item.gemRate) || 0,
+          gradingCost: !isNaN(gCost) ? gCost : 22,
+          qty:         parseInt(item.qty, 10) || 1,
+          image:       typeof item.image === 'string' && item.image.length > 0 ? item.image : null,
+        };
+        cards.push(card); added++;
+      });
+      save(); render();
+      toast('Imported ' + added + ' card(s) from JSON.', 'ok');
+    } catch (err) {
+      toast('JSON import failed: ' + err.message, 'er');
+    }
+  };
+  reader.readAsText(file);
+  this.value = '';
+});
+
+/* ─────────────────────────── CSV import ─────────────────────────── */
+el('in-csv').addEventListener('change', function (e) {
+  var file = e.target.files[0]; if (!file) return;
+  var reader = new FileReader();
+  reader.onload = function (ev) {
+    try {
+      var lines = ev.target.result.split(/\r?\n/).filter(function (l) { return l.trim(); });
+      if (lines.length < 2) throw new Error('CSV must have a header row and at least one data row');
+      var hdrs = parseCSVRow(lines[0]).map(function (h) { return h.trim().toLowerCase(); });
+      function ci(name) { return hdrs.indexOf(name.toLowerCase()); }
+      var iName  = ci('card name'), iSet   = ci('set');
+      var iRaw   = ci('raw price'), iP10   = ci('psa 10 price');
+      var iP9    = ci('psa 9 price'), iGem = ci('gem rate %');
+      var iGCost = ci('grading cost'), iQty = ci('qty');
+      if (iName < 0 || iSet < 0) throw new Error('CSV must contain "Card Name" and "Set" columns');
+      var added = 0;
+      for (var i = 1; i < lines.length; i++) {
+        var cols = parseCSVRow(lines[i]);
+        var g = function (idx, def) { return idx >= 0 && cols[idx] !== undefined ? cols[idx].trim() : def; };
+        var name = g(iName, ''), set = g(iSet, '');
+        if (!name || !set) continue;
+        var gcv = parseFloat(g(iGCost, ''));
+        var card = {
+          id:          uid(),
+          name:        name,
+          set:         set,
+          raw:         parseFloat(g(iRaw, '0')) || 0,
+          psa10:       parseFloat(g(iP10, '0')) || 0,
+          psa9:        parseFloat(g(iP9,  '0')) || 0,
+          gemRate:     parseFloat(g(iGem, '0')) || 0,
+          gradingCost: !isNaN(gcv) ? gcv : 22,
+          qty:         parseInt(g(iQty, '1'), 10) || 1,
+          image:       null,
+        };
+        cards.push(card); added++;
+      }
+      save(); render();
+      toast('Imported ' + added + ' card(s) from CSV.', 'ok');
+    } catch (err) {
+      toast('CSV import failed: ' + err.message, 'er');
+    }
+  };
+  reader.readAsText(file);
+  this.value = '';
+});
+
+function parseCSVRow(row) {
+  var result = [], cur = '', inQ = false;
+  for (var i = 0; i < row.length; i++) {
+    var ch = row[i];
+    if (ch === '"') {
+      if (inQ && row[i + 1] === '"') { cur += '"'; i++; }
+      else inQ = !inQ;
+    } else if (ch === ',' && !inQ) {
+      result.push(cur); cur = '';
+    } else {
+      cur += ch;
+    }
+  }
+  result.push(cur);
+  return result;
+}
+
+/* ─────────────────────────── Download ─────────────────────────── */
+function dlBlob(content, filename, mime) {
+  var blob = new Blob([content], { type: mime });
+  var url  = URL.createObjectURL(blob);
+  var a    = document.createElement('a');
+  a.href = url; a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  setTimeout(function () { URL.revokeObjectURL(url); }, 1000);
+}
+
+/* ─────────────────────────── Array.findIndex polyfill (safety) ─────────────────────────── */
+if (!Array.prototype.findIndex) {
+  Array.prototype.findIndex = function (fn) {
+    for (var i = 0; i < this.length; i++) { if (fn(this[i], i, this)) return i; }
+    return -1;
+  };
+}
+
+/* ─────────────────────────── Init ─────────────────────────── */
+load();
+render();
+
+})();
+</script>
+</body>
+</html>
