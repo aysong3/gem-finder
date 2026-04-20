@@ -374,18 +374,7 @@ var cards=[], sortCol=null, sortDir=1, pendingDelId=null, formImgB64=null, toast
 
 /* ─── Seed data (first visit) ─── */
 var SEED=[
-  {name:'Charizard ex',            set:'Scarlet & Violet 7',    raw:45,  psa10:350, psa9:120, gemRate:45, gradingCost:22, qty:3},
-  {name:'Umbreon VMAX (Alt Art)',  set:'Evolving Skies',         raw:280, psa10:1800,psa9:600, gemRate:52, gradingCost:50, qty:1},
-  {name:'Pikachu VMAX (Rainbow)', set:'Vivid Voltage',          raw:38,  psa10:280, psa9:90,  gemRate:48, gradingCost:22, qty:5},
-  {name:'Rayquaza VMAX (Alt Art)',set:'Evolving Skies',         raw:195, psa10:900, psa9:320, gemRate:55, gradingCost:50, qty:2},
-  {name:'Lugia V (Alt Art)',       set:'Silver Tempest',         raw:90,  psa10:450, psa9:160, gemRate:50, gradingCost:22, qty:2},
-  {name:'Mew VMAX (Alt Art)',      set:'Fusion Strike',          raw:65,  psa10:380, psa9:130, gemRate:58, gradingCost:22, qty:4},
-  {name:'Giratina V (Alt Art)',    set:'Lost Origin',            raw:55,  psa10:290, psa9:95,  gemRate:43, gradingCost:22, qty:3},
-  {name:'Charizard ex (SAR)',      set:'Obsidian Flames',        raw:120, psa10:700, psa9:220, gemRate:40, gradingCost:50, qty:2},
-  {name:'Gardevoir ex (SAR)',      set:'Scarlet & Violet Base',  raw:30,  psa10:160, psa9:55,  gemRate:62, gradingCost:22, qty:5},
-  {name:'Iron Valiant ex (SAR)',   set:'Paradox Rift',           raw:25,  psa10:130, psa9:42,  gemRate:60, gradingCost:22, qty:6},
-  {name:'Miraidon ex (SAR)',       set:'Scarlet & Violet Base',  raw:18,  psa10:95,  psa9:32,  gemRate:64, gradingCost:22, qty:8},
-  {name:'Koraidon ex (SAR)',       set:'Scarlet & Violet Base',  raw:16,  psa10:88,  psa9:28,  gemRate:63, gradingCost:22, qty:8},
+  {name:'Mega Gengar ex - 284/217', set:'ME: Ascended Heroes', raw:1279.54, psa10:0, psa9:0, gemRate:0, gradingCost:22, qty:1},
 ];
 
 /* ─── Utils ─── */
@@ -413,7 +402,7 @@ function calc(c){
 }
 
 /* ─── Storage ─── */
-var LS='gemfinder_v1';
+var LS='gemfinder_v2';
 function save(){
   try{localStorage.setItem(LS,JSON.stringify(cards));}
   catch(e){
