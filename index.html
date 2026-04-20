@@ -62,8 +62,11 @@ th:hover{color:var(--text)}th.sa{color:var(--accent)}
 th .si{margin-left:3px;opacity:.3;font-style:normal;font-size:.7rem}th.sa .si{opacity:1}
 th.ns{cursor:default}th.ns:hover{color:var(--muted)}
 td{padding:8px 13px;border-bottom:1px solid var(--border2);vertical-align:middle;white-space:nowrap}
-tbody tr:hover{background:rgba(88,166,255,.04)}
+tbody tr{background:var(--bg)}
+tbody tr:nth-child(even){background:var(--surface)}
+tbody tr:hover{background:rgba(88,166,255,.06)!important}
 tbody tr:last-child td{border-bottom:none}
+td{color:var(--text)}
 .pos-val{color:var(--green);font-weight:600}.neg-val{color:var(--red);font-weight:600}
 .name-cell{font-weight:500}.set-cell{color:var(--muted);font-size:.8rem}
 
@@ -483,6 +486,21 @@ function getSorted(list){
   });
 }
 
+/* ─── Field defs (used by render + event delegation) ─── */
+var DEFS={
+  raw:    {fmt:fmtUSD,min:0,max:9999999,step:.01,isInt:false},
+  psa10:  {fmt:fmtUSD,min:0,max:9999999,step:.01,isInt:false},
+  psa9:   {fmt:fmtUSD,min:0,max:9999999,step:.01,isInt:false},
+  gemRate:{fmt:fmtPct,min:0,max:100,    step:.1, isInt:false},
+  qty:    {fmt:function(v){return String(v);},min:1,max:99999,step:1,isInt:true},
+};
+
+function cardById(id){for(var i=0;i<cards.length;i++){if(cards[i].id===id)return cards[i];}return null;}
+
+function esc(s){
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
 /* ─── Render ─── */
 function render(){
   rebuildSets();
@@ -506,77 +524,35 @@ function render(){
   if(filtered.length===0){hide('tbl-wrap');show('empty-filter');return;}
   hide('empty-filter');show('tbl-wrap');
 
-  var tbody=el('tbl-body');
-  tbody.innerHTML='';
-  rows.forEach(function(card){
+  /* Build rows as HTML string — avoids DOM mutation quirks */
+  var html=rows.map(function(card){
     var r=calc(card);
-    var tr=document.createElement('tr');
+    var imgHtml=card.image
+      ?'<img class="thumb" src="'+card.image+'" alt="'+esc(card.name)+'" title="Enlarge">'
+      :'<div class="thumb-ph">No Img</div>';
+    var roiHtml=r.roi===null
+      ?'<span class="pill pill-na">N/A</span>'
+      :'<span class="pill '+(r.roi>=0?'pill-pos':'pill-neg')+'">'+fmtPct(r.roi)+'</span>';
+    return '<tr data-id="'+card.id+'">'
+      +'<td>'+imgHtml+'</td>'
+      +'<td class="name-cell">'+esc(card.name)+'</td>'
+      +'<td class="set-cell">'+esc(card.set)+'</td>'
+      +'<td class="editable" data-field="raw" title="Click to edit"><span class="ev">'+fmtUSD(card.raw)+'</span></td>'
+      +'<td class="editable" data-field="psa10" title="Click to edit"><span class="ev">'+fmtUSD(card.psa10)+'</span></td>'
+      +'<td class="editable" data-field="psa9" title="Click to edit"><span class="ev">'+fmtUSD(card.psa9)+'</span></td>'
+      +'<td class="editable" data-field="gemRate" title="Click to edit"><span class="ev">'+fmtPct(card.gemRate)+'</span></td>'
+      +'<td>'+fmtUSD(r.ev)+'</td>'
+      +'<td>'+fmtUSD(r.cost)+'</td>'
+      +'<td class="'+(r.profit>=0?'pos-val':'neg-val')+'">'+fmtUSD(r.profit)+'</td>'
+      +'<td>'+roiHtml+'</td>'
+      +'<td class="editable" data-field="qty" title="Click to edit"><span class="ev">'+card.qty+'</span></td>'
+      +'<td class="'+(r.batchProfit>=0?'pos-val':'neg-val')+'">'+fmtUSD(r.batchProfit)+'</td>'
+      +'<td><button class="btn-del">Delete</button></td>'
+      +'</tr>';
+  }).join('');
 
-    /* Image */
-    var tdI=document.createElement('td');
-    if(card.image){
-      var img=document.createElement('img');
-      img.src=card.image;img.alt=card.name;img.className='thumb';img.title='Enlarge';
-      img.addEventListener('click',function(){openImgModal(card);});
-      tdI.appendChild(img);
-    }else{
-      var ph=document.createElement('div');ph.className='thumb-ph';ph.textContent='No Img';
-      tdI.appendChild(ph);
-    }
-    tr.appendChild(tdI);
-
-    /* Name, Set */
-    var tdN=aTd(tr,card.name);tdN.className='name-cell';
-    var tdS=aTd(tr,card.set);tdS.className='set-cell';
-
-    /* Editable fields */
-    [
-      {key:'raw',   fmt:fmtUSD, min:0,max:9999999,step:.01,isInt:false},
-      {key:'psa10', fmt:fmtUSD, min:0,max:9999999,step:.01,isInt:false},
-      {key:'psa9',  fmt:fmtUSD, min:0,max:9999999,step:.01,isInt:false},
-      {key:'gemRate',fmt:fmtPct,min:0,max:100,    step:.1, isInt:false},
-    ].forEach(function(def){
-      var td=document.createElement('td');
-      td.className='editable';td.title='Click to edit';
-      td.innerHTML='<span class="ev">'+def.fmt(card[def.key])+'</span>';
-      td.addEventListener('click',function(){startEdit(td,card,def);});
-      tr.appendChild(td);
-    });
-
-    /* Calculated */
-    aTd(tr,fmtUSD(r.ev));
-    aTd(tr,fmtUSD(r.cost));
-    var tdP=aTd(tr,fmtUSD(r.profit));tdP.className=r.profit>=0?'pos-val':'neg-val';
-
-    /* ROI pill */
-    var tdR=document.createElement('td');
-    if(r.roi===null){tdR.innerHTML='<span class="pill pill-na">N/A</span>';}
-    else{tdR.innerHTML='<span class="pill '+(r.roi>=0?'pill-pos':'pill-neg')+'">'+fmtPct(r.roi)+'</span>';}
-    tr.appendChild(tdR);
-
-    /* Qty editable */
-    var tdQ=document.createElement('td');
-    tdQ.className='editable';tdQ.title='Click to edit';
-    tdQ.innerHTML='<span class="ev">'+card.qty+'</span>';
-    tdQ.addEventListener('click',function(){
-      startEdit(tdQ,card,{key:'qty',fmt:function(v){return String(v);},min:1,max:99999,step:1,isInt:true});
-    });
-    tr.appendChild(tdQ);
-
-    var tdB=aTd(tr,fmtUSD(r.batchProfit));tdB.className=r.batchProfit>=0?'pos-val':'neg-val';
-
-    /* Delete */
-    var tdA=document.createElement('td');
-    var bd=document.createElement('button');
-    bd.className='btn-del';bd.textContent='Delete';
-    bd.addEventListener('click',function(){confirmDel(card.id,card.name);});
-    tdA.appendChild(bd);tr.appendChild(tdA);
-
-    tbody.appendChild(tr);
-  });
+  el('tbl-body').innerHTML=html;
 }
-
-function aTd(tr,txt){var td=document.createElement('td');td.textContent=txt;tr.appendChild(td);return td;}
 
 /* ─── Stats ─── */
 function renderStats(filtered){
@@ -623,6 +599,22 @@ document.querySelectorAll('th[data-col]').forEach(function(th){
     if(sortCol===col)sortDir=-sortDir;else{sortCol=col;sortDir=1;}
     render();
   });
+});
+
+/* ─── Table event delegation (image / edit / delete) ─── */
+el('tbl-body').addEventListener('click',function(e){
+  var tr=e.target.closest('tr[data-id]');
+  if(!tr)return;
+  var card=cardById(tr.dataset.id);
+  if(!card)return;
+  if(e.target.closest('.thumb')){openImgModal(card);return;}
+  if(e.target.closest('.btn-del')){confirmDel(card.id,card.name);return;}
+  var td=e.target.closest('td[data-field]');
+  if(td){
+    var key=td.dataset.field;
+    var def=DEFS[key];
+    if(def)startEdit(td,card,Object.assign({key:key},def));
+  }
 });
 
 /* ─── Inline edit ─── */
