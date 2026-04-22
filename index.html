@@ -209,10 +209,6 @@ label.btn,label.btn-ghost{cursor:pointer}
 <!-- Stats strip -->
 <div class="statsbar">
   <div class="sc"><div class="sc-lbl">Showing</div><div class="sc-val acc" id="s-n">0</div><div class="sc-sub" id="s-of">of 0 cards</div></div>
-  <div class="sc"><div class="sc-lbl">Avg ROI</div><div class="sc-val" id="s-roi">—</div></div>
-  <div class="sc"><div class="sc-lbl">Batch Profit</div><div class="sc-val" id="s-bp">$0.00</div></div>
-  <div class="sc"><div class="sc-lbl">Best ROI</div><div class="sc-val pos" id="s-hi">—</div><div class="sc-sub" id="s-hi-n">—</div></div>
-  <div class="sc"><div class="sc-lbl">Worst ROI</div><div class="sc-val" id="s-lo">—</div><div class="sc-sub" id="s-lo-n">—</div></div>
 </div>
 
 <!-- Table -->
@@ -232,7 +228,6 @@ label.btn,label.btn-ghost{cursor:pointer}
         <th data-col="profit">Profit <i class="si">⇅</i></th>
         <th data-col="roi">ROI % <i class="si">⇅</i></th>
         <th data-col="qty">Qty <i class="si">⇅</i></th>
-        <th data-col="batchProfit">Batch Profit <i class="si">⇅</i></th>
         <th class="ns"></th>
       </tr>
     </thead>
@@ -1338,7 +1333,7 @@ function getSorted(list){
   if(!sortCol)return list.slice();
   return list.slice().sort(function(a,b){
     var va,vb;
-    if(['ev','cost','profit','roi','batchProfit'].indexOf(sortCol)>-1){
+    if(['ev','cost','profit','roi'].indexOf(sortCol)>-1){
       va=calc(a)[sortCol];vb=calc(b)[sortCol];
       if(va===null)va=-Infinity;if(vb===null)vb=-Infinity;
     }else if(sortCol==='name'||sortCol==='set'){
@@ -1409,7 +1404,6 @@ function render(){
       +'<td class="'+(r.profit>=0?'pos-val':'neg-val')+'">'+fmtUSD(r.profit)+'</td>'
       +'<td>'+roiHtml+'</td>'
       +'<td class="editable" data-field="qty" title="Click to edit"><span class="ev">'+card.qty+'</span></td>'
-      +'<td class="'+(r.batchProfit>=0?'pos-val':'neg-val')+'">'+fmtUSD(r.batchProfit)+'</td>'
       +'<td><button class="btn-del">Delete</button></td>'
       +'</tr>';
   }).join('');
@@ -1419,33 +1413,8 @@ function render(){
 
 /* ─── Stats ─── */
 function renderStats(filtered){
-  var n=filtered.length;
-  el('s-n').textContent=n;
+  el('s-n').textContent=filtered.length;
   el('s-of').textContent='of '+cards.length+' card'+(cards.length!==1?'s':'');
-  if(n===0){
-    el('s-roi').textContent='—';el('s-roi').className='sc-val';
-    el('s-bp').textContent='$0.00';el('s-bp').className='sc-val';
-    el('s-hi').textContent='—';el('s-hi-n').textContent='—';
-    el('s-lo').textContent='—';el('s-lo-n').textContent='—';
-    return;
-  }
-  var calcs=filtered.map(function(c){var r=calc(c);return{name:c.name,roi:r.roi,bp:r.batchProfit};});
-  var valid=calcs.filter(function(c){return c.roi!==null;});
-  var bp=calcs.reduce(function(s,c){return s+c.bp;},0);
-  el('s-bp').textContent=fmtUSD(bp);el('s-bp').className='sc-val '+(bp>=0?'pos':'neg');
-  if(valid.length>0){
-    var avg=valid.reduce(function(s,c){return s+c.roi;},0)/valid.length;
-    el('s-roi').textContent=fmtPct(avg);el('s-roi').className='sc-val '+(avg>=0?'pos':'neg');
-    var hi=valid.reduce(function(m,c){return c.roi>m.roi?c:m;},valid[0]);
-    var lo=valid.reduce(function(m,c){return c.roi<m.roi?c:m;},valid[0]);
-    el('s-hi').textContent=fmtPct(hi.roi);el('s-hi-n').textContent=hi.name;
-    el('s-lo').textContent=fmtPct(lo.roi);el('s-lo-n').textContent=lo.name;
-    el('s-lo').className='sc-val '+(lo.roi>=0?'pos':'neg');
-  }else{
-    el('s-roi').textContent='N/A';el('s-roi').className='sc-val';
-    el('s-hi').textContent='—';el('s-hi-n').textContent='—';
-    el('s-lo').textContent='—';el('s-lo-n').textContent='—';
-  }
 }
 
 /* ─── Filter listeners ─── */
@@ -1608,12 +1577,12 @@ el('imp-overlay').addEventListener('click',function(e){if(e.target===this)this.c
 /* ─── Export CSV ─── */
 el('btn-csv').addEventListener('click',function(){
   if(!cards.length){toast('No cards to export.','wn');return;}
-  var hdr='Card Name,Set,Raw Price,PSA 10 Price,PSA 9 Price,Gem Rate %,Grading Cost,Qty,EV,Cost,Profit,ROI %,Batch Profit';
+  var hdr='Card Name,Set,Raw Price,PSA 10 Price,PSA 9 Price,Gem Rate %,Grading Cost,Qty,EV,Cost,Profit,ROI %';
   var rows=cards.map(function(c){
     var r=calc(c);
     return[csvQ(c.name),csvQ(c.set),c.raw,c.psa10,c.psa9,c.gemRate,c.gradingCost,c.qty,
       r.ev.toFixed(2),r.cost.toFixed(2),r.profit.toFixed(2),
-      r.roi!==null?r.roi.toFixed(2):'N/A',r.batchProfit.toFixed(2)].join(',');
+      r.roi!==null?r.roi.toFixed(2):'N/A'].join(',');
   });
   dlBlob([hdr].concat(rows).join('\n'),'gem_finder_export.csv','text/csv');
   toast('Exported '+cards.length+' cards as CSV.','ok');
