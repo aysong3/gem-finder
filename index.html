@@ -57,7 +57,7 @@ select.finp{width:130px;cursor:pointer}
 .tbl-wrap{overflow-x:auto}
 table{width:100%;border-collapse:collapse;min-width:1020px}
 thead{background:var(--surface2)}
-th{background:var(--surface2);color:var(--muted);font-size:.65rem;font-weight:600;text-transform:uppercase;letter-spacing:.06em;padding:9px 13px;text-align:left;white-space:nowrap;cursor:pointer;user-select:none;border-bottom:1px solid var(--border);position:sticky;top:55px;z-index:10;transition:color .15s}
+th{background:var(--surface2);color:var(--muted);font-size:.65rem;font-weight:600;text-transform:uppercase;letter-spacing:.06em;padding:9px 13px;text-align:left;white-space:nowrap;cursor:pointer;user-select:none;border-bottom:1px solid var(--border);position:sticky;top:0;z-index:10;transition:color .15s}
 th:hover{color:var(--text)}th.sa{color:var(--accent)}
 th .si{margin-left:3px;opacity:.3;font-style:normal;font-size:.7rem}th.sa .si{opacity:1}
 th.ns{cursor:default}th.ns:hover{color:var(--muted)}
@@ -1273,10 +1273,26 @@ function save(){
   }
 }
 function load(){
+  var stored=null;
   try{
     var raw=localStorage.getItem(LS);
-    if(raw){var p=JSON.parse(raw);if(Array.isArray(p)){cards=p;return;}}
+    if(raw){var p=JSON.parse(raw);if(Array.isArray(p))stored=p;}
   }catch(e){toast('Failed to load saved data.','er');}
+  if(stored){
+    cards=stored;
+    var key=function(o){return (o.name||'')+'||'+(o.set||'');};
+    var have={};
+    cards.forEach(function(c){have[key(c)]=true;});
+    var added=0;
+    SEED.forEach(function(s){
+      if(!have[key(s)]){
+        cards.push(Object.assign({id:uid(),image:null},s));
+        added++;
+      }
+    });
+    if(added)save();
+    return;
+  }
   cards=SEED.map(function(s){return Object.assign({id:uid(),image:null},s);});
   save();
 }
@@ -1331,15 +1347,20 @@ function rebuildSets(){
 /* ─── Sort ─── */
 function getSorted(list){
   if(!sortCol)return list.slice();
+  var NUMERIC=['raw','psa10','psa9','gemRate','qty','ev','cost','profit','roi'];
+  var isNum=NUMERIC.indexOf(sortCol)>-1;
   return list.slice().sort(function(a,b){
     var va,vb;
     if(['ev','cost','profit','roi'].indexOf(sortCol)>-1){
       va=calc(a)[sortCol];vb=calc(b)[sortCol];
-      if(va===null)va=-Infinity;if(vb===null)vb=-Infinity;
     }else if(sortCol==='name'||sortCol==='set'){
       va=(a[sortCol]||'').toLowerCase();vb=(b[sortCol]||'').toLowerCase();
       if(va<vb)return-sortDir;if(va>vb)return sortDir;return 0;
     }else{va=a[sortCol];vb=b[sortCol];}
+    if(isNum){
+      va=parseFloat(va);vb=parseFloat(vb);
+      if(isNaN(va))va=-Infinity;if(isNaN(vb))vb=-Infinity;
+    }
     if(va<vb)return-sortDir;if(va>vb)return sortDir;return 0;
   });
 }
@@ -1430,6 +1451,7 @@ document.querySelectorAll('th[data-col]').forEach(function(th){
     var col=th.dataset.col;
     if(sortCol===col)sortDir=-sortDir;else{sortCol=col;sortDir=1;}
     render();
+    window.scrollTo({top:0,behavior:'auto'});
   });
 });
 
