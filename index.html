@@ -1281,16 +1281,28 @@ function load(){
   if(stored){
     cards=stored;
     var key=function(o){return (o.name||'')+'||'+(o.set||'');};
+    var seedByKey={};
+    SEED.forEach(function(s){seedByKey[key(s)]=s;});
+    var added=0,refreshed=0;
+    /* Refresh price/rate fields from SEED for matched cards (preserves
+       user-added cards, qty, image, gradingCost, id) */
+    cards.forEach(function(c){
+      var s=seedByKey[key(c)];
+      if(!s)return;
+      if(c.raw!==s.raw||c.psa10!==s.psa10||c.psa9!==s.psa9||c.gemRate!==s.gemRate){
+        c.raw=s.raw;c.psa10=s.psa10;c.psa9=s.psa9;c.gemRate=s.gemRate;
+        refreshed++;
+      }
+    });
     var have={};
     cards.forEach(function(c){have[key(c)]=true;});
-    var added=0;
     SEED.forEach(function(s){
       if(!have[key(s)]){
         cards.push(Object.assign({id:uid(),image:null},s));
         added++;
       }
     });
-    if(added)save();
+    if(added||refreshed)save();
     return;
   }
   cards=SEED.map(function(s){return Object.assign({id:uid(),image:null},s);});
