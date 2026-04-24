@@ -289,10 +289,6 @@ label.btn,label.btn-ghost{cursor:pointer}
             <span class="ferr hidden" id="fe-gem">Required, 0–100</span>
           </div>
           <div class="fg">
-            <label for="fn-gc">Grading Cost ($)</label>
-            <input type="number" id="fn-gc" placeholder="22.00" min="0" step="0.01" value="22">
-          </div>
-          <div class="fg">
             <label for="fn-qty">Quantity</label>
             <input type="number" id="fn-qty" placeholder="1" min="1" step="1" value="1">
           </div>
@@ -1252,14 +1248,29 @@ function fmtPct(v){
   return Number(v).toFixed(1)+'%';
 }
 
+/* ─── PSA grading tier (cost based on PSA 10 value, 10% buffer over max insured) ─── */
+/* Bulk $24.99 ≤ $500 · ValueMax $64.99 ≤ $1k · Regular $79.99 ≤ $1.5k
+   Express $149 ≤ $2.5k · SuperExpress $299 ≤ $5k · WalkThrough $599 > $5k.
+   Threshold = max insured × 1.10 so a $550 card stays in Bulk, a $1.2k card lands in Regular. */
+function psaTier(psa10){
+  var v=Number(psa10)||0;
+  if(v<=550)return 24.99;
+  if(v<=1100)return 64.99;
+  if(v<=1650)return 79.99;
+  if(v<=2750)return 149;
+  if(v<=5500)return 299;
+  return 599;
+}
+
 /* ─── ROI calc ─── */
 function calc(c){
   var gr=c.gemRate/100;
   var ev=gr*c.psa10+(1-gr)*c.psa9;
-  var cost=c.raw+c.gradingCost;
+  var gc=psaTier(c.psa10);
+  var cost=c.raw+gc;
   var profit=ev-cost;
   var roi=cost!==0?(profit/cost)*100:null;
-  return{ev:ev,cost:cost,profit:profit,roi:roi,batchProfit:profit*c.qty};
+  return{ev:ev,cost:cost,profit:profit,roi:roi,batchProfit:profit*c.qty,gradingCost:gc};
 }
 
 /* ─── Storage ─── */
@@ -1521,7 +1532,7 @@ el('add-overlay').addEventListener('click',function(e){if(e.target===this)closeA
 
 function clearAddForm(){
   ['fn-name','fn-set','fn-raw','fn-p10','fn-p9','fn-gem'].forEach(function(id){el(id).value='';});
-  el('fn-gc').value='22';el('fn-qty').value='1';
+  el('fn-qty').value='1';
   el('fn-img').value='';formImgB64=null;
   hide('fprev');show('fph');hide('fwarn');
   ['name','set','raw','p10','p9','gem'].forEach(function(k){
@@ -1547,13 +1558,13 @@ function validateForm(){
 
 el('add-submit').addEventListener('click',function(){
   if(!validateForm())return;
-  var gc=parseFloat(el('fn-gc').value),qt=parseInt(el('fn-qty').value,10);
+  var qt=parseInt(el('fn-qty').value,10);
   var card={
     id:uid(),
     name:el('fn-name').value.trim(),set:el('fn-set').value.trim(),
     raw:parseFloat(el('fn-raw').value),psa10:parseFloat(el('fn-p10').value),
     psa9:parseFloat(el('fn-p9').value),gemRate:parseFloat(el('fn-gem').value),
-    gradingCost:!isNaN(gc)&&gc>=0?gc:22,qty:!isNaN(qt)&&qt>=1?qt:1,
+    gradingCost:0,qty:!isNaN(qt)&&qt>=1?qt:1,
     image:formImgB64||null,
   };
   cards.push(card);save();render();closeAdd();
